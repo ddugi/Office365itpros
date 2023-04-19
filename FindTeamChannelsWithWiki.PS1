@@ -36,6 +36,8 @@ ForEach ($Team in $Teams) {
                  # Get Team owners 
                  [array]$OwnerData = Get-MgGroupOwner -GroupId $Team.Id
                  $TeamOwners = $OwnerData.AdditionalProperties.displayName -Join ", "
+                 $TeamOwnerEmails = ($OwnerData.AdditionalProperties.userPrincipalName | Where-Object { $_ }) -Join ", "
+
                  $WikiCheck = "Wiki content exists"}
               $False    { $WikiCheck = "No content" }
               Default    { $WikiCheck = "No content" }
@@ -45,6 +47,7 @@ ForEach ($Team in $Teams) {
               Channel        = $Channel.DisplayName
              "Tab name"     = $Tab.DisplayName
               Owners         = $TeamOwners
+              OwnerEmails     = $TeamOwnerEmails  # New property to include owners' email addresses
               Check          = $WikiCheck
               TeamId         = $Team.Id    
               AppId          = $Tab.TeamsApp.Id
@@ -60,7 +63,8 @@ ForEach ($Team in $Teams) {
 $WikiReport = $Report | Where-Object {$_.AppId -eq "com.microsoft.teamspace.tab.wiki" -and $_.Check -eq "Wiki content exists"}
 $WikiReport | Out-GridView
 $WikiReport | Export-CSV -NoTypeInformation WikisToReview.CSV
-Write-Host ("All done. {0} Teams processed. The Wiki tab with content was found in {1} channels. CSV file generated in WikisToReview.csv" -f $Teams.count, $WikiReport.count)
+#Write-Host ("All done. {0} Teams processed. The Wiki tab with content was found in {1} channels. CSV file generated in WikisToReview.csv" -f $Teams.count, $WikiReport.count)
+Write-Host ("All done. {0} Teams processed. The Wiki tab with content was found in {1} channels. {2} owner email addresses found. CSV file generated in WikisToReview.csv" -f $Teams.count, $WikiReport.count, ($Report.OwnerEmails | Measure-Object -Word).Words)
 
 # An example script used to illustrate a concept. More information about the topic can be found in the Office 365 for IT Pros eBook https://gum.co/O365IT/
 # and/or a relevant article on https://office365itpros.com or https://www.practical365.com. See our post about the Office 365 for IT Pros repository 
